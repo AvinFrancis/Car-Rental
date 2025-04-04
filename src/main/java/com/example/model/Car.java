@@ -35,8 +35,8 @@ public class Car {
     public String getBrand(){return brand;}
     public void setBrand(String brand){this.brand=brand;}
 
-    public String getlicensePlate(){return licensePlate;}
-    public void setlicensePlate(String licensePlate){this.licensePlate=licensePlate;}
+    public String getLicensePlate(){return licensePlate;}
+    public void setLicensePlate(String licensePlate){this.licensePlate=licensePlate;}
 
     public double getPricePerDay(){return pricePerDay;}
     public void setPricePerDay(double pricePerDay){this.pricePerDay=pricePerDay;}

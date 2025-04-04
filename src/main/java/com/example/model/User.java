@@ -22,6 +22,9 @@ private String phone;
 @Column(nullable=false)
 private String password;
 
+@Column(nullable=false)
+private String role;
+
 //getters and Setters
 public Long getId(){return id;}
 public void setId(Long id){this.id=id;}
@@ -38,4 +41,6 @@ public void setPhone(String phone){this.phone=phone;}
 public String getPassword(){return password;}
 public void setPassword(String password){this.password=password;}
 
+public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }
