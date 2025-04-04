@@ -8,7 +8,7 @@ import jakarta.persistence.*;
 public class Car {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false)
     private String model;
@@ -26,7 +26,7 @@ public class Car {
     private boolean available=true; //by default the car is available
 
     //getter and setters
-    public long getId(){return id;}
+    public Long getId(){return id;}
     public void setId(Long id){this.id=id;}
 
     public String getModel(){return model;}
