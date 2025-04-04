@@ -26,6 +26,13 @@ public class Payment {
     @Column(nullable = false)
     private LocalDateTime paymentTime = LocalDateTime.now();
 
+    @Column(nullable = false)
+    private boolean refunded = false;
+
+    private double refundAmount;
+
+    private LocalDateTime refundTime;
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -44,4 +51,13 @@ public class Payment {
 
     public LocalDateTime getPaymentTime() { return paymentTime; }
     public void setPaymentTime(LocalDateTime paymentTime) { this.paymentTime = paymentTime; }
+
+    public boolean isRefunded() { return refunded; }
+    public void setRefunded(boolean refunded) { this.refunded = refunded; }
+
+    public double getRefundAmount() { return refundAmount; }
+    public void setRefundAmount(double refundAmount) { this.refundAmount = refundAmount; }
+
+    public LocalDateTime getRefundTime() { return refundTime; }
+    public void setRefundTime(LocalDateTime refundTime) { this.refundTime = refundTime; }
 }
