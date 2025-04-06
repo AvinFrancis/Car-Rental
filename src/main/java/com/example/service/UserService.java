@@ -46,7 +46,7 @@ public class UserService {
         return userRepository.findById(id).map(user -> {
             user.setName(updatedUser.getName());
             user.setEmail(updatedUser.getEmail());
-            user.setPassword(updatedUser.getPassword());
+            user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
             user.setRole(updatedUser.getRole());
             return userRepository.save(user);
         }).orElseThrow(() -> new RuntimeException("User not found"));

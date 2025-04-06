@@ -32,7 +32,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/users/register").permitAll()
+            .requestMatchers("/users/register", "/users/login").permitAll()
                 .requestMatchers("/cars").hasRole("ADMIN") // POST /cars
                 .requestMatchers("/cars/{id}").authenticated() 
                 .requestMatchers("/cars/**").authenticated()
