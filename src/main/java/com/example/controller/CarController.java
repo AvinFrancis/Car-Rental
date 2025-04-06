@@ -30,7 +30,7 @@ public class CarController {
     
     //post method to add car
     @PostMapping
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Car addCar(@RequestBody Car car) {
         return carService.addCar(car);
     }
@@ -43,20 +43,21 @@ public class CarController {
     
     //get by Id
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public Car getCarById(@PathVariable Long id){
         return carService.getCarById(id);
     }
 
     //Update car
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('Admin')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Car updateCar(@PathVariable Long id, @RequestBody Car car) {
         return carService.updateCar(id, car);
     }
 
     //Delete a car
     @DeleteMapping("/{id}")
-    
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public void deleteCar(@PathVariable Long id){
         carService.deleteCar(id);
     }

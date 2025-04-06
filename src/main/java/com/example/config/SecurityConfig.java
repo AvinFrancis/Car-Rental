@@ -2,6 +2,7 @@ package com.example.config;
 
 import com.example.service.UserDetailsServiceImpl;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -32,10 +33,11 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/users/register", "/users/login").permitAll()
-                .requestMatchers("/cars").hasRole("ADMIN") // POST /cars
-                .requestMatchers("/cars/{id}").authenticated() 
-                .requestMatchers("/cars/**").authenticated()
+                .requestMatchers("/users/register", "/users/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/cars").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/cars/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/cars/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/cars/**").authenticated()
                 .anyRequest().authenticated()
             )
             .userDetailsService(userDetailsService) 
