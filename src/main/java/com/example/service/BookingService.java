@@ -2,10 +2,12 @@ package com.example.service;
 
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.exception.BookingConflictException;
 import com.example.model.Booking;
 import com.example.model.Car;
 import com.example.repository.BookingRepository;
@@ -15,7 +17,9 @@ import com.example.repository.LocationRepository;
 
 @Service
 public class BookingService {
-
+    
+    private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
+    
     @Autowired
     private BookingRepository bookingRepository;
 
@@ -29,47 +33,88 @@ public class BookingService {
     private LocationRepository locationRepository;
 
     public Booking createBooking(Booking booking) {
-        // Validate car
-        Car car = carRepository.findById(booking.getCar().getId())
-                .orElseThrow(() -> new RuntimeException("Car not found with ID: " + booking.getCar().getId()));
+        logger.info("Creating new booking: {}", booking);
+        try {
+            Car car = carRepository.findById(booking.getCar().getId())
+                    .orElseThrow(() -> {
+                        logger.warn("Car not found with ID: {}", booking.getCar().getId());
+                        return new RuntimeException("Car not found with ID: " + booking.getCar().getId());
+                    });
+            logger.debug("Validated car with ID: {}", car.getId());
 
-        // Validate user
-        userRepository.findById(booking.getUser().getId())
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + booking.getUser().getId()));
+            // Check car availability
+            if (!car.isAvailable()) {
+                logger.warn("Car with ID: {} is not available for booking", car.getId());
+                throw new BookingConflictException("Car is not available for booking");
+            }
 
-        // Validate locations
-        locationRepository.findById(booking.getPickupLocation().getId())
-                .orElseThrow(() -> new RuntimeException("Pickup location not found"));
+            userRepository.findById(booking.getUser().getId())
+                    .orElseThrow(() -> {
+                        logger.warn("User not found with ID: {}", booking.getUser().getId());
+                        return new RuntimeException("User not found with ID: " + booking.getUser().getId());
+                    });
+            logger.debug("Validated user with ID: {}", booking.getUser().getId());
 
-        locationRepository.findById(booking.getDropoffLocation().getId())
-                .orElseThrow(() -> new RuntimeException("Dropoff location not found"));
+            locationRepository.findById(booking.getPickupLocation().getId())
+                    .orElseThrow(() -> {
+                        logger.warn("Pickup location not found with ID: {}", booking.getPickupLocation().getId());
+                        return new RuntimeException("Pickup location not found");
+                    });
+            locationRepository.findById(booking.getDropoffLocation().getId())
+                    .orElseThrow(() -> {
+                        logger.warn("Dropoff location not found with ID: {}", booking.getDropoffLocation().getId());
+                        return new RuntimeException("Dropoff location not found");
+                    });
+            logger.debug("Validated pickup and dropoff locations");
 
-        // Calculate rental duration
-        long days = ChronoUnit.DAYS.between(booking.getPickupDate(), booking.getDropoffDate());
-        if (days <= 0) {
-            throw new IllegalArgumentException("Dropoff date must be after pickup date");
+            long days = ChronoUnit.DAYS.between(booking.getPickupDate(), booking.getDropoffDate());
+            if (days <= 0) {
+                logger.error("Invalid booking dates: Dropoff date must be after pickup date");
+                throw new IllegalArgumentException("Dropoff date must be after pickup date");
+            }
+            logger.debug("Calculated rental duration: {} days", days);
+
+            double totalAmount = car.getPricePerDay() * days;
+            booking.setTotalAmount(totalAmount);
+            logger.debug("Calculated total amount: {}", totalAmount);
+
+            // Update car availability
+            car.setAvailable(false);
+            carRepository.save(car);
+
+            Booking savedBooking = bookingRepository.save(booking);
+            logger.debug("Successfully created booking with ID: {}", savedBooking.getId());
+            return savedBooking;
+        } catch (Exception e) {
+            logger.error("Failed to create booking: {}", e.getMessage(), e);
+            throw e;
         }
-
-        // Calculate total amount
-        double totalAmount = car.getPricePerDay() * days;
-        booking.setTotalAmount(totalAmount);
-
-        return bookingRepository.save(booking);
     }
 
+    // Other methods remain unchanged for this example
     public List<Booking> getAllBookings() {
-        return bookingRepository.findAll();
+        logger.info("Fetching all bookings");
+        List<Booking> bookings = bookingRepository.findAll();
+        logger.debug("Retrieved {} bookings", bookings.size());
+        return bookings;
     }
 
     public Booking getBookingById(Long id) {
+        logger.info("Fetching booking with ID: {}", id);
         return bookingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
+                .orElseThrow(() -> {
+                    logger.warn("Booking not found with ID: {}", id);
+                    return new RuntimeException("Booking not found with ID: " + id);
+                });
     }
 
     public void deleteBooking(Long id) {
+        logger.info("Deleting booking with ID: {}", id);
         if (!bookingRepository.existsById(id)) {
+            logger.warn("Booking not found with ID: {}", id);
             throw new RuntimeException("Booking not found with ID: " + id);
         }
         bookingRepository.deleteById(id);
+        logger.debug("Successfully deleted booking with ID: {}", id);
     }
 }

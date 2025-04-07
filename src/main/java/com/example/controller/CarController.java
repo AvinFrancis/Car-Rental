@@ -1,64 +1,73 @@
 package com.example.controller;
 
 import java.util.List;
-
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 
 import com.example.model.Car;
 import com.example.service.CarService;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PutMapping;
-
-
-
 @RestController
-@RequestMapping("/cars") //base URL for all car related endpoints
+@RequestMapping("/cars")
 public class CarController {
-
-    @Autowired //injects CarService
+    
+    private static final Logger logger = LoggerFactory.getLogger(CarController.class);
+    
+    @Autowired
     private CarService carService;
     
-    //post method to add car
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Car addCar(@RequestBody Car car) {
-        return carService.addCar(car);
+        logger.info("Attempting to add new car: {}", car);
+        try {
+            Car savedCar = carService.addCar(car);
+            logger.debug("Successfully added car with ID: {}", savedCar.getId());
+            return savedCar;
+        } catch (Exception e) {
+            logger.error("Failed to add car: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
-    //get method to get all cars
     @GetMapping
     public List<Car> getAllCars(){
-        return carService.getAllCars();
+        logger.info("Fetching all cars");
+        List<Car> cars = carService.getAllCars();
+        logger.debug("Retrieved {} cars", cars.size());
+        return cars;
     }
     
-    //get by Id
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public Car getCarById(@PathVariable Long id){
-        return carService.getCarById(id);
+        logger.info("Fetching car with ID: {}", id);
+        Car car = carService.getCarById(id);
+        if (car != null) {
+            logger.debug("Successfully retrieved car: {}", car);
+        } else {
+            logger.warn("Car not found with ID: {}", id);
+        }
+        return car;
     }
 
-    //Update car
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Car updateCar(@PathVariable Long id, @RequestBody Car car) {
-        return carService.updateCar(id, car);
+        logger.info("Updating car with ID: {} with details: {}", id, car);
+        Car updatedCar = carService.updateCar(id, car);
+        logger.debug("Successfully updated car with ID: {}", id);
+        return updatedCar;
     }
 
-    //Delete a car
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public void deleteCar(@PathVariable Long id){
+        logger.info("Deleting car with ID: {}", id);
         carService.deleteCar(id);
+        logger.debug("Successfully deleted car with ID: {}", id);
     }
 }
