@@ -33,15 +33,29 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                // Public endpoints
                 .requestMatchers("/users/register", "/users/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/cars").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/cars/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/cars/**").hasRole("ADMIN")
+
+                // Car management (admin only)
+                .requestMatchers(HttpMethod.POST, "/cars").hasAuthority("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/cars/**").hasAuthority("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/cars/**").hasAuthority("ROLE_ADMIN")
+
+                // Car viewing (authenticated users)
                 .requestMatchers(HttpMethod.GET, "/cars/**").authenticated()
+
+                // Booking endpoints
+                .requestMatchers(HttpMethod.GET, "/api/bookings").hasAuthority("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/bookings/user/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/bookings/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/bookings").hasAuthority("ROLE_USER")
+                .requestMatchers(HttpMethod.DELETE, "/api/bookings/**").hasAuthority("ROLE_ADMIN")
+
+                // Any other request requires authentication
                 .anyRequest().authenticated()
             )
-            .userDetailsService(userDetailsService) 
-            .httpBasic(httpBasic -> {});
+            .userDetailsService(userDetailsService)
+            .httpBasic(httpBasic -> {}); // Use HTTP Basic Auth for Postman
 
         return http.build();
     }

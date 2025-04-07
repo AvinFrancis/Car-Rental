@@ -2,6 +2,8 @@ package com.example.model;
 
 import java.util.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -25,9 +27,11 @@ public class Location {
     private String country;
     
     @OneToMany(mappedBy="pickupLocation")
+    @JsonIgnore
     private Set<Booking> pickups= new HashSet<>();
 
     @OneToMany(mappedBy="dropoffLocation")
+    @JsonIgnore
     private Set<Booking> dropoffs=new HashSet<>();
 
     //Getters and Setters

@@ -42,7 +42,7 @@ public class UserService {
         return userRepository.save(user);
     }
      // Update an existing user
-     public User updateUser(Long id, User updatedUser) {
+     public User updateUser(Long id, User updatedUser) {    
         return userRepository.findById(id).map(user -> {
             user.setName(updatedUser.getName());
             user.setEmail(updatedUser.getEmail());
